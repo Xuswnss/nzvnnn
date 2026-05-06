@@ -29,9 +29,16 @@ scene_blur = cv2.GaussianBlur(scene,(3,3), 0 )
 
 #----------------------------------------
 #1-3 가우시안 블러 전후를 subplot으로 비교 출력하기
+import matplotlib.pyplot as plt
+#cmap == colormap의 약자, 색을 지정하지않으면 matplotlib이 임의의 색을 지정.
+fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+axes[0].imshow(scene, cmap='gray')
+axes[0].set_title('Before')
+axes[0].axis('off')
 
+axes[1].imshow(scene_blur, cmap='gray')
+axes[1].set_title('After (GaussianBlur)')
+axes[1].axis('off')
 
-
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+plt.tight_layout()
+plt.show()
