@@ -16,13 +16,19 @@ if template is None or scene is None :
     print('########## 이미지 없음!!!')
     sys.exit()
 
+# 배경(밝은 회색 200↑) 제거 후 물체 영역만 크롭
+_, mask = cv2.threshold(template, 200, 255, cv2.THRESH_BINARY_INV)
+x, y, cw, ch = cv2.boundingRect(mask)
+template = template[y:y+ch, x:x+cw]
+print(f'크롭 후 template 크기: {template.shape}')
+
 # print('########## 이미지 출력')
 # cv2.imshow('template', template)
 # cv2.imshow('scene', scene)
 
 #----------------------------------------
 #1-2 scene(전체사진)에 가우시안 블러를 적용해 노이즈 줄이기
-# 커널 크기는 홀수여야한다.
+# 커널 크기는 홀수여야한다. 초ㅣ소  (3,3)
 scene_blur = cv2.GaussianBlur(scene,(3,3), 0 )
 # print('###########  가우시안 블러 이미지 출력')
 # cv2.imshow('scene_blur', scene_blur)
@@ -52,7 +58,7 @@ plt.show()
 # • 매칭 유사도(similarity score)를 콘솔에 출력하라
 result = cv2.matchTemplate(scene_blur, template, cv2.TM_CCOEFF_NORMED)
 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-print(f'매칭 유사도: {max_val:.1f}, 위치: {max_loc}')
+print(f'similarity score: {max_val:.1f}, loc: {max_loc}')
 
 #TM_CCOEFF_NORMED 는 정규화된 상관계수 방식으로 값이 1의 가까울 수록 유사핟.
 #minMaxLoc() -> 유사도 맥에서 최솟값 최댓값고 그 위치를 반홚나다.
@@ -67,17 +73,21 @@ top_left = max_loc
 bottom_right = (top_left[0] + w, top_left[1] + h)
 
 scene_result = scene.copy()
-cv2.rectangle(scene_result, top_left, bottom_right, 255, 2)
+pad = 20
+cv2.rectangle(scene_result,
+              (top_left[0] + pad, top_left[1] + pad),
+              (bottom_right[0] - pad, bottom_right[1] - pad),
+              255, 2)
 cv2.putText(scene_result, 'Found!', (top_left[0], top_left[1] - 10),
             cv2.FONT_HERSHEY_SIMPLEX, 0.8, 255, 2)
 
 fig2, axes2 = plt.subplots(1, 2, figsize=(5, 5))
 axes2[0].imshow(scene, cmap='gray')
-axes2[0].set_title('원본 scene')
+axes2[0].set_title(' scene')
 axes2[0].axis('off')
 
 axes2[1].imshow(scene_result, cmap='gray')
-axes2[1].set_title('매칭 결과')
+axes2[1].set_title('matching result')
 axes2[1].axis('off')
 
 plt.tight_layout()
